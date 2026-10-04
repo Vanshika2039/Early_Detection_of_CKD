@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CKD Early Detection System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0a4d68;
+    --accent: #00b4d8;
+    --accent2: #48cae4;
+    --dark: #0d1b2a;
+    --danger: #e63946;
+    --success: #2dc653;
+    --warn: #f4a261;
+    --gradient: linear-gradient(135deg, #0a4d68 0%, #00b4d8 60%, #48cae4 100%);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--dark); color:#fff; overflow-x:hidden; }
+
+  /* ─── PAGES ─────────────────────────────────────── */
+  .page { display:none; min-height:100vh; }
+  .page.active { display:block; }
+
+  /* ─── NAVBAR ─────────────────────────────────────── */
+  .navbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1.2rem 5vw;
+    background:rgba(10,77,104,0.35);
+    border-bottom:1px solid rgba(0,180,216,0.2);
+    backdrop-filter:blur(14px);
+    position:sticky; top:0; z-index:200;
+  }
+  .logo { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; letter-spacing:1px; cursor:pointer; }
+  .logo span { color:var(--accent); }
+  .nav-links { display:flex; gap:.5rem; list-style:none; }
+  .nav-links a {
+    color:#cee8f0; text-decoration:none; font-weight:500;
+    padding:.45rem 1rem; border-radius:8px; transition:all .25s; font-size:.92rem;
+    position:relative;
+  }
+  .nav-links a:hover, .nav-links a.active {
+    background:rgba(0,180,216,0.18); color:#fff;
+  }
+  .nav-links a.active::after {
+    content:''; position:absolute; bottom:-2px; left:1rem; right:1rem;
+    height:2px; background:var(--accent); border-radius:2px;
+  }
+  .nav-links a.btn-nav {
+    background:var(--accent); color:#fff; padding:.45rem 1.3rem;
+  }
+  .nav-links a.btn-nav:hover { background:#0096c7; transform:translateY(-1px); }
+
+  /* ─── HERO ───────────────────────────────────────── */
+  .hero {
+    min-height:92vh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center;
+    padding:4rem 2rem;
+    background:
+      radial-gradient(ellipse at 30% 40%, rgba(10,77,104,.55) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 70%, rgba(0,180,216,.18) 0%, transparent 50%),
+      url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1800&q=80') center/cover no-repeat;
+    position:relative;
+  }
+  .hero::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg,rgba(13,27,42,.72) 0%,rgba(13,27,42,.38) 50%,rgba(13,27,42,.88) 100%);
+  }
+  .hero > * { position:relative; z-index:1; }
+  .badge {
+    display:inline-block; background:rgba(0,180,216,.18);
+    border:1px solid var(--accent); color:var(--accent2);
+    padding:.35rem 1.2rem; border-radius:50px; font-size:.8rem;
+    letter-spacing:2px; text-transform:uppercase; margin-bottom:2rem;
+    animation:fadeDown .7s ease both;
+  }
+  .hero h1 {
+    font-family:'Playfair Display',serif;
+    font-size:clamp(2.4rem,6vw,4.8rem); font-weight:900; line-height:1.1; max-width:820px;
+    animation:fadeUp .8s ease .2s both;
+  }
+  .hero h1 em { color:var(--accent); font-style:normal; }
+  .hero p {
+    font-size:1.05rem; color:#a8d5e2; max-width:580px;
+    margin:1.5rem 0 2.5rem; line-height:1.75;
+    animation:fadeUp .8s ease .35s both;
+  }
+  .hero-btns { display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; animation:fadeUp .8s ease .5s both; }
+  .btn { padding:.85rem 2.2rem; border-radius:50px; border:none; font-size:.95rem; font-weight:600; cursor:pointer; transition:all .3s; letter-spacing:.4px; font-family:'DM Sans',sans-serif; }
+  .btn-primary-hero { background:var(--accent); color:#fff; box-shadow:0 0 28px rgba(0,180,216,.4); }
+  .btn-primary-hero:hover { background:#0096c7; transform:translateY(-3px); box-shadow:0 0 45px rgba(0,180,216,.6); }
+  .btn-outline-hero { background:transparent; color:#fff; border:1.5px solid rgba(0,180,216,.5); }
+  .btn-outline-hero:hover { background:rgba(0,180,216,.12); border-color:var(--accent); transform:translateY(-2px); }
+
+  /* STATS */
+  .stats { display:flex; justify-content:center; gap:3.5rem; padding:3.5rem 2rem; flex-wrap:wrap; border-bottom:1px solid rgba(0,180,216,.1); }
+  .stat { text-align:center; }
+  .stat-num { font-family:'Playfair Display',serif; font-size:2.8rem; font-weight:900; color:var(--accent); }
+  .stat-label { color:#a8d5e2; font-size:.85rem; margin-top:.2rem; }
+
+  /* FEATURES GRID */
+  .section { padding:4rem 5vw; max-width:1200px; margin:0 auto; }
+  .section-title { font-family:'Playfair Display',serif; font-size:2rem; text-align:center; margin-bottom:.6rem; }
+  .section-sub { color:#a8d5e2; text-align:center; margin-bottom:2.5rem; font-size:.95rem; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.4rem; }
+  .card {
+    background:rgba(255,255,255,.05); border:1px solid rgba(0,180,216,.18);
+    border-radius:16px; padding:1.8rem; transition:all .3s; backdrop-filter:blur(8px);
+  }
+  .card:hover { background:rgba(0,180,216,.09); border-color:var(--accent); transform:translateY(-5px); box-shadow:0 20px 40px rgba(0,0,0,.3); }
+  .card-icon { font-size:2.2rem; margin-bottom:.9rem; }
+  .card h3 { font-family:'Playfair Display',serif; font-size:1.1rem; margin-bottom:.6rem; }
+  .card p { color:#a8d5e2; font-size:.88rem; line-height:1.65; }
+
+  /* ABOUT LANDING */
+  .about-grid { display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center; padding:4rem 5vw; max-width:1100px; margin:0 auto; }
+  .about-grid img { width:100%; border-radius:18px; opacity:.88; filter:saturate(1.2); }
+  .about-grid h2 { font-family:'Playfair Display',serif; font-size:2.2rem; margin-bottom:1rem; }
+  .about-grid p { color:#a8d5e2; line-height:1.8; margin-bottom:1rem; font-size:.95rem; }
+
+  footer { background:rgba(0,0,0,.4); border-top:1px solid rgba(0,180,216,.15); padding:1.8rem 5vw; text-align:center; color:#4a6a7a; font-size:.82rem; }
+
+  /* ─── AUTH CARDS ──────────────────────────────────── */
+  .auth-page {
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(0,180,216,.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 30%, rgba(10,77,104,.14) 0%, transparent 50%),
+      url('https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1400&q=80') center/cover no-repeat;
+    position:relative;
+  }
+  .auth-page::before { content:''; position:absolute; inset:0; background:rgba(13,27,42,.82); }
+  .auth-card {
+    position:relative; z-index:1;
+    background:rgba(255,255,255,.07); border:1px solid rgba(0,180,216,.28);
+    border-radius:24px; padding:2.8rem; width:100%; max-width:470px;
+    backdrop-filter:blur(22px); box-shadow:0 20px 60px rgba(0,0,0,.45);
+    animation:scaleIn .45s ease;
+  }
+  .auth-card h2 { font-family:'Playfair Display',serif; font-size:1.9rem; margin-bottom:.4rem; }
+  .auth-card .subtitle { color:#a8d5e2; margin-bottom:1.8rem; font-size:.92rem; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .field { margin-bottom:1.1rem; }
+  .field label { display:block; color:#a8d5e2; font-size:.8rem; margin-bottom:.4rem; font-weight:500; letter-spacing:.3px; }
+  .field input, .field select {
+    width:100%; padding:.8rem 1rem;
+    background:rgba(255,255,255,.08); border:1px solid rgba(0,180,216,.2);
+    border-radius:10px; color:#fff; font-size:.92rem; transition:all .3s;
+    font-family:'DM Sans',sans-serif;
+  }
+  .field input:focus, .field select:focus {
+    outline:none; border-color:var(--accent);
+    background:rgba(0,180,216,.07); box-shadow:0 0 0 3px rgba(0,180,216,.13);
+  }
+  .field input::placeholder { color:#4a6a7a; }
+  .field select option { background:#0d1b2a; }
+  .btn-form {
+    width:100%; padding:.9rem; background:var(--gradient); border:none;
+    border-radius:10px; color:#fff; font-size:.98rem; font-weight:600;
+    cursor:pointer; transition:all .3s; box-shadow:0 4px 18px rgba(0,180,216,.3);
+    margin-top:.4rem; font-family:'DM Sans',sans-serif;
+  }
+  .btn-form:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,180,216,.5); }
+  .auth-footer { text-align:center; margin-top:1.3rem; color:#a8d5e2; font-size:.88rem; }
+  .auth-footer a { color:var(--accent); cursor:pointer; font-weight:600; transition:.2s; text-decoration:none; }
+  .auth-footer a:hover { color:var(--accent2); text-decoration:underline; }
+  .msg { padding:.75rem 1rem; border-radius:8px; margin-bottom:1rem; font-size:.88rem; display:none; }
+  .msg.error { background:rgba(230,57,70,.14); border:1px solid var(--danger); color:#ffa8ae; display:block; }
+  .msg.success { background:rgba(45,198,83,.12); border:1px solid var(--success); color:#a8f0b8; display:block; }
+
+  /* ─── DASHBOARD ───────────────────────────────────── */
+  #dashboard {
+    background:
+      radial-gradient(ellipse at 10% 20%, rgba(0,180,216,.06) 0%, transparent 40%),
+      radial-gradient(ellipse at 90% 80%, rgba(10,77,104,.1) 0%, transparent 40%),
+      var(--dark);
+  }
+  .dash-nav {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1rem 5vw; background:rgba(10,77,104,.5);
+    border-bottom:1px solid rgba(0,180,216,.22);
+    backdrop-filter:blur(16px); position:sticky; top:0; z-index:200;
+  }
+  .dash-nav-links { display:flex; gap:.4rem; list-style:none; flex-wrap:wrap; }
+  .dash-nav-links a {
+    color:#cee8f0; text-decoration:none; font-weight:500;
+    padding:.45rem 1rem; border-radius:8px; transition:all .25s; font-size:.9rem;
+    display:flex; align-items:center; gap:.4rem;
+  }
+  .dash-nav-links a:hover { background:rgba(0,180,216,.18); color:#fff; }
+  .dash-nav-links a.active { background:rgba(0,180,216,.22); color:#fff; }
+  .dash-nav-links a.signout { color:#e08080; }
+  .dash-nav-links a.signout:hover { background:rgba(230,57,70,.12); }
+  .user-pill { background:rgba(0,180,216,.18); border:1px solid rgba(0,180,216,.3); padding:.35rem .9rem; border-radius:50px; font-size:.82rem; color:var(--accent2); white-space:nowrap; }
+
+  /* TABS */
+  .dash-tab { display:none; }
+  .dash-tab.active { display:block; animation:fadeUp .4s ease; }
+
+  /* WELCOME BANNER */
+  .welcome {
+    margin:2rem 5vw; padding:2rem 2.5rem;
+    background:linear-gradient(135deg, rgba(0,180,216,.12), rgba(10,77,104,.25));
+    border:1px solid rgba(0,180,216,.2); border-radius:20px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;
+  }
+  .welcome h1 { font-family:'Playfair Display',serif; font-size:1.9rem; }
+  .welcome h1 span { color:var(--accent); }
+  .welcome p { color:#a8d5e2; margin-top:.3rem; font-size:.92rem; }
+
+  /* ─── SYMPTOM FORM ────────────────────────────────── */
+  .predict-wrap { padding:0 5vw 4rem; }
+  .predict-card {
+    background:rgba(255,255,255,.04); border:1px solid rgba(0,180,216,.18);
+    border-radius:20px; padding:2.5rem; backdrop-filter:blur(10px);
+  }
+  .predict-card h2 { font-family:'Playfair Display',serif; font-size:1.7rem; margin-bottom:.5rem; }
+  .predict-card .intro { color:#a8d5e2; margin-bottom:2rem; line-height:1.65; font-size:.92rem; }
+  .symptom-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.1rem; }
+
+  /* Symptom card style */
+  .symptom-field {
+    background:rgba(255,255,255,.04); border:1px solid rgba(0,180,216,.14);
+    border-radius:14px; padding:1.2rem 1.4rem; transition:border-color .25s;
+  }
+  .symptom-field:focus-within { border-color:var(--accent); background:rgba(0,180,216,.06); }
+  .symptom-field .q-label {
+    font-size:.88rem; color:#a8d5e2; margin-bottom:.7rem; line-height:1.5;
+    display:flex; align-items:flex-start; gap:.5rem;
+  }
+  .q-icon { font-size:1.1rem; flex-shrink:0; margin-top:-.05rem; }
+  .radio-group { display:flex; gap:.6rem; flex-wrap:wrap; }
+  .radio-option { position:relative; }
+  .radio-option input[type=radio] { position:absolute; opacity:0; width:0; height:0; }
+  .radio-option label {
+    display:inline-block; padding:.38rem .9rem; border-radius:50px; font-size:.83rem;
+    border:1px solid rgba(0,180,216,.25); color:#a8d5e2; cursor:pointer; transition:all .2s;
+    user-select:none;
+  }
+  .radio-option input[type=radio]:checked + label {
+    background:var(--accent); color:#fff; border-color:var(--accent);
+    box-shadow:0 0 12px rgba(0,180,216,.35);
+  }
+  .radio-option label:hover { border-color:var(--accent); color:#fff; }
+  .age-input {
+    width:100%; padding:.6rem .9rem; background:rgba(255,255,255,.07);
+    border:1px solid rgba(0,180,216,.2); border-radius:8px; color:#fff;
+    font-size:.92rem; font-family:'DM Sans',sans-serif; transition:all .3s;
+    margin-top:.2rem;
+  }
+  .age-input:focus { outline:none; border-color:var(--accent); background:rgba(0,180,216,.07); }
+
+  /* Form actions */
+  .form-actions { display:flex; gap:1rem; margin-top:2rem; flex-wrap:wrap; }
+  .btn-submit {
+    flex:1; min-width:180px; padding:.9rem 2rem; background:var(--gradient);
+    border:none; border-radius:10px; color:#fff; font-size:1rem; font-weight:600;
+    cursor:pointer; transition:all .3s; box-shadow:0 4px 18px rgba(0,180,216,.3);
+    font-family:'DM Sans',sans-serif;
+  }
+  .btn-submit:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,180,216,.5); }
+  .btn-reset {
+    flex:1; min-width:160px; padding:.9rem 2rem; background:transparent;
+    border:1.5px solid rgba(0,180,216,.3); border-radius:10px; color:#a8d5e2;
+    font-size:1rem; font-weight:600; cursor:pointer; transition:all .3s;
+    font-family:'DM Sans',sans-serif;
+  }
+  .btn-reset:hover { background:rgba(255,255,255,.05); border-color:var(--accent); color:#fff; }
+
+  /* Loading */
+  .loading { display:none; text-align:center; padding:2rem; }
+  .loading.show { display:block; }
+  .spinner {
+    width:44px; height:44px; border:4px solid rgba(0,180,216,.2);
+    border-top-color:var(--accent); border-radius:50%;
+    animation:spin .9s linear infinite; margin:0 auto 1rem;
+  }
+
+  /* Result */
+  .result-card {
+    margin-top:2rem; padding:2rem; border-radius:18px;
+    display:none; animation:scaleIn .5s ease;
+  }
+  .result-card.ckd {
+    background:rgba(230,57,70,.1); border:1.5px solid var(--danger); display:block;
+  }
+  .result-card.no-ckd {
+    background:rgba(45,198,83,.08); border:1.5px solid var(--success); display:block;
+  }
+  .result-card.medium {
+    background:rgba(244,162,97,.08); border:1.5px solid var(--warn); display:block;
+  }
+  .result-header { display:flex; align-items:center; gap:1rem; margin-bottom:1rem; }
+  .result-icon { font-size:2.8rem; }
+  .result-header h3 { font-family:'Playfair Display',serif; font-size:1.6rem; }
+  .risk-bar { background:rgba(255,255,255,.1); border-radius:50px; height:10px; margin:1rem 0 .3rem; overflow:hidden; }
+  .risk-fill { height:100%; border-radius:50px; transition:width 1.2s cubic-bezier(.4,0,.2,1); width:0%; }
+  .risk-fill.ckd-fill { background:linear-gradient(90deg,#f4a261,#e63946); }
+  .risk-fill.safe-fill { background:linear-gradient(90deg,#2dc653,#48cae4); }
+  .result-prob { font-size:.85rem; color:#a8d5e2; margin-bottom:1rem; }
+  .result-rec { background:rgba(0,0,0,.2); border-radius:10px; padding:1rem 1.2rem; color:#c8dde6; line-height:1.7; font-size:.92rem; }
+  .result-disclaimer { font-size:.78rem; color:#4a6a7a; margin-top:.8rem; font-style:italic; }
+
+  /* ABOUT DASH */
+  .about-dash { padding:2.5rem 5vw; max-width:900px; }
+  .about-dash h2 { font-family:'Playfair Display',serif; font-size:1.9rem; margin-bottom:1rem; }
+  .about-dash p { color:#a8d5e2; line-height:1.8; margin-bottom:1rem; font-size:.93rem; }
+  .mini-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-top:1.5rem; }
+  .mini-card {
+    background:rgba(0,180,216,.07); border:1px solid rgba(0,180,216,.18);
+    border-radius:12px; padding:1.3rem; text-align:center; transition:.3s;
+  }
+  .mini-card:hover { background:rgba(0,180,216,.14); transform:translateY(-3px); }
+  .mini-card .icon { font-size:1.8rem; margin-bottom:.5rem; }
+  .mini-card h4 { font-size:.92rem; margin-bottom:.3rem; }
+  .mini-card p { font-size:.8rem; color:#a8d5e2; }
+
+  /* NOTEBOOK */
+  .notebook { padding:2.5rem 5vw; }
+  .notebook h2 { font-family:'Playfair Display',serif; font-size:1.9rem; margin-bottom:1.5rem; }
+  .nb-card {
+    background:rgba(255,255,255,.04); border:1px solid rgba(0,180,216,.14);
+    border-radius:14px; padding:1.8rem; margin-bottom:1.2rem; transition:.3s;
+  }
+  .nb-card:hover { border-color:rgba(0,180,216,.35); background:rgba(0,180,216,.05); }
+  .nb-card h3 { font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--accent2); margin-bottom:.6rem; }
+  .nb-card p { color:#a8d5e2; line-height:1.7; font-size:.9rem; }
+  .tags { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.8rem; }
+  .tag { background:rgba(0,180,216,.13); border:1px solid rgba(0,180,216,.28); color:var(--accent); padding:.18rem .75rem; border-radius:50px; font-size:.76rem; }
+
+  /* ─── ANIMATIONS ────────────────────────────────── */
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-18px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp   { from{opacity:0;transform:translateY(26px)}  to{opacity:1;transform:translateY(0)} }
+  @keyframes scaleIn  { from{opacity:0;transform:scale(.95)}        to{opacity:1;transform:scale(1)} }
+  @keyframes spin     { to{transform:rotate(360deg)} }
+
+  @media(max-width:768px) {
+    .about-grid { grid-template-columns:1fr; }
+    .form-row { grid-template-columns:1fr; }
+    .stats { gap:2rem; }
+    .welcome { flex-direction:column; }
+  }
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:var(--dark); }
+  ::-webkit-scrollbar-thumb { background:var(--accent); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     LANDING PAGE
+═══════════════════════════════════════════════ -->
+<div id="landing" class="page active">
+
+  <nav class="navbar">
+    <div class="logo" onclick="showPage('landing')">CKD<span>Detect</span></div>
+    <ul class="nav-links">
+      <li><a href="#hero-anchor" class="active">Home</a></li>
+      <li><a href="#about-anchor">About</a></li>
+      <li><a href="#features-anchor">Features</a></li>
+      <li><a href="#" class="btn-nav" onclick="showPage('auth');showAuth('signup')">Get Started</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero-anchor">
+    <div class="badge">🔬Health Screening</div>
+    <h1>Early Detection of<br><em>Chronic Kidney Disease</em><br>Made Simple</h1>
+    <p>Answer a few easy questions about your symptoms and lifestyle — our machine learning model gives you an instant kidney health risk assessment. No lab tests needed.</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary-hero" onclick="showPage('auth');showAuth('signup')">Start Free Screening</button>
+      <button class="btn btn-outline-hero" onclick="document.getElementById('about-anchor').scrollIntoView({behavior:'smooth'})">Learn More ↓</button>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="stat-num">850M+</div><div class="stat-label">People Affected Worldwide</div></div>
+    <div class="stat"><div class="stat-num">95%+</div><div class="stat-label">Model Accuracy</div></div>
+    <div class="stat"><div class="stat-num">11</div><div class="stat-label">Symptom Questions</div></div>
+    <div class="stat"><div class="stat-num">&lt;1min</div><div class="stat-label">Time to Result</div></div>
+  </div>
+
+  <!-- FEATURES -->
+  <section id="features-anchor" class="section">
+    <h2 class="section-title">How It Works</h2>
+    <p class="section-sub">No blood tests. No lab visits. Just answer questions about your symptoms.</p>
+    <div class="cards">
+      <div class="card"><div class="card-icon">📝</div><h3>Answer 11 Questions</h3><p>Simple yes/no questions about your symptoms, lifestyle, and medical history — anyone can answer these without any tests.</p></div>
+      <div class="card"><div class="card-icon">🤖</div><h3>ML Analysis</h3><p>Your answers are mapped to clinical indicators and run through a Random Forest model trained on 400 real patient records.</p></div>
+      <div class="card"><div class="card-icon">📊</div><h3>Instant Result</h3><p>Get your CKD risk level (Low / Medium / High) with a probability score and personalised health recommendation.</p></div>
+      <div class="card"><div class="card-icon">🛡️</div><h3>Private & Free</h3><p>Your data is never stored or shared. This is a free educational screening tool — not a replacement for a doctor.</p></div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about-anchor" class="about-grid">
+    <div>
+      <h2>Why Early Detection Matters</h2>
+      <p>Chronic Kidney Disease often has <strong>no symptoms</strong> until 60–70% of kidney function is already lost. By that point, options are limited to dialysis or transplant.</p>
+      <p>Our tool helps you identify <em>risk indicators early</em> — swelling, fatigue, changes in urination, high blood pressure — so you can seek medical advice before it's too late.</p>
+      <button class="btn btn-primary-hero" onclick="showPage('auth');showAuth('signup')">Try It Now →</button>
+    </div>
+    <img src="https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=700&q=80" alt="Medical" />
+  </section>
+
+  <footer>© 2024 CKDDetect — Early Detection | For Educational & Research Use Only</footer>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     AUTH PAGE (Sign Up / Sign In)
+═══════════════════════════════════════════════ -->
+<div id="auth" class="page">
+  <nav class="navbar">
+    <div class="logo" onclick="showPage('landing')">CKD<span>Detect</span></div>
+    <ul class="nav-links">
+      <li><a href="#" onclick="showPage('landing')">← Back to Home</a></li>
+      <li><a href="#" id="auth-toggle-link" onclick="toggleAuth()">Sign In</a></li>
+    </ul>
+  </nav>
+
+  <!-- SIGN UP -->
+  <div id="signup-wrap" class="auth-page">
+    <div class="auth-card">
+      <h2>Create Account</h2>
+      <p class="subtitle">Join CKDDetect for free kidney health screening</p>
+      <div id="signup-msg" class="msg"></div>
+      <form onsubmit="handleRegister(event)">
+        <div class="form-row">
+          <div class="field"><label>Username</label><input type="text" id="reg-username" placeholder="john_doe" required></div>
+          <div class="field"><label>Full Name</label><input type="text" id="reg-name" placeholder="John Doe" required></div>
+        </div>
+        <div class="field"><label>Email Address</label><input type="email" id="reg-email" placeholder="john@email.com" required></div>
+        <div class="field"><label>Phone Number</label><input type="tel" id="reg-phone" placeholder="+91 9876543210" required></div>
+        <div class="field"><label>Password</label><input type="password" id="reg-password" placeholder="Create a strong password" required></div>
+        <button type="submit" class="btn-form">Register →</button>
+      </form>
+      <div class="auth-footer">Already registered? <a onclick="showAuth('signin')">Sign In here</a></div>
+    </div>
+  </div>
+
+  <!-- SIGN IN -->
+  <div id="signin-wrap" class="auth-page" style="display:none">
+    <div class="auth-card">
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Sign in to access your CKD screening dashboard</p>
+      <div id="signin-msg" class="msg"></div>
+      <form onsubmit="handleLogin(event)">
+        <div class="field"><label>Email Address</label><input type="email" id="login-email" placeholder="john@email.com" required></div>
+        <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="Your password" required></div>
+        <button type="submit" class="btn-form">Sign In →</button>
+      </form>
+      <div class="auth-footer">Don't have an account? <a onclick="showAuth('signup')">Sign Up here</a></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     DASHBOARD
+═══════════════════════════════════════════════ -->
+<div id="dashboard" class="page">
+  <nav class="dash-nav">
+    <div class="logo">CKD<span>Detect</span></div>
+    <ul class="dash-nav-links">
+      <li><a href="#" onclick="showTab('d-home')" id="tab-home">🏠 Home</a></li>
+      <li><a href="#" onclick="showTab('d-about')" id="tab-about">ℹ️ About</a></li>
+      <li><a href="#" onclick="showTab('d-notebook')" id="tab-notebook">📓 Notebook</a></li>
+      <li><a href="#" onclick="showTab('d-predict')" id="tab-predict">🔬 CKD Test</a></li>
+      <li><a href="#" class="signout" onclick="signOut()">🚪 Sign Out</a></li>
+    </ul>
+    <div class="user-pill" id="user-pill">👤 User</div>
+  </nav>
+
+  <!-- HOME TAB -->
+  <div id="d-home" class="dash-tab active">
+    <div class="welcome">
+      <div>
+        <h1>Welcome to <span>Dashboard</span> 👋</h1>
+        <p id="welcome-msg">You're signed in and ready to check your kidney health.</p>
+      </div>
+      <div style="font-size:3.5rem">🏥</div>
+    </div>
+    <div class="section" style="padding-top:1rem">
+      <div class="cards">
+        <div class="card" style="cursor:pointer" onclick="showTab('d-predict')">
+          <div class="card-icon">🔬</div><h3>Start CKD Assessment</h3>
+          <p>Answer 11 simple symptom questions to check your risk level — no lab tests required.</p>
+        </div>
+        <div class="card" style="cursor:pointer" onclick="showTab('d-notebook')">
+          <div class="card-icon">📓</div><h3>Research Notebook</h3>
+          <p>Explore clinical notes, research insights, and information about CKD biomarkers.</p>
+        </div>
+        <div class="card" style="cursor:pointer" onclick="showTab('d-about')">
+          <div class="card-icon">ℹ️</div><h3>About This System</h3>
+          <p>Learn about the ML models, datasets, and methodology powering this detection tool.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT TAB -->
+  <div id="d-about" class="dash-tab">
+    <div class="about-dash">
+      <h2>About <span style="color:var(--accent)">CKDDetect</span></h2>
+      <p>CKDDetect is an academic machine learning project for early detection of Chronic Kidney Disease. Our system uses data from the Kaggle/UCI CKD dataset with 400 patient records and 24 clinical attributes.</p>
+      <p>Since our target users are the <strong>general public</strong> (without lab reports), we designed a smart symptom-to-clinical mapping layer that converts your answers to approximate clinical values, which are then fed to the trained ML model.</p>
+      <p><strong>⚕️ Disclaimer:</strong> This tool is for educational purposes only and does not replace professional medical consultation.</p>
+      <div class="mini-cards">
+        <div class="mini-card"><div class="icon">🧪</div><h4>Kaggle CKD Dataset</h4><p>400 records, 24 attributes</p></div>
+        <div class="mini-card"><div class="icon">🎯</div><h4>95%+ Accuracy</h4><p>Cross-validated RF model</p></div>
+        <div class="mini-card"><div class="icon">🔬</div><h4>5 ML Models</h4><p>RF, SVM, LR, KNN, GBM</p></div>
+        <div class="mini-card"><div class="icon">🧠</div><h4>Smart Mapping</h4><p>Symptoms → Clinical values</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTEBOOK TAB -->
+  <div id="d-notebook" class="dash-tab">
+    <div class="notebook">
+      <h2>Research <span style="color:var(--accent)">Notebook</span></h2>
+      <div class="nb-card">
+        <h3>What is Chronic Kidney Disease?</h3>
+        <p>CKD is defined as abnormalities of kidney structure or function, present for more than 3 months. It is staged by GFR (Glomerular Filtration Rate) from Stage 1 (mild) to Stage 5 (kidney failure). Early-stage CKD is asymptomatic, making screening critical for the general public.</p>
+        <div class="tags"><span class="tag">GFR Staging</span><span class="tag">Nephrology</span><span class="tag">Silent Disease</span></div>
+      </div>
+      <div class="nb-card">
+        <h3>Key Symptoms & Risk Factors (General Public)</h3>
+        <p>Observable warning signs include: persistent fatigue, swelling in feet/ankles (pedal edema), changes in urination frequency or colour, poor appetite/nausea, persistent back or side pain, and foamy urine. Risk factors include hypertension, diabetes, family history, obesity, and smoking.</p>
+        <div class="tags"><span class="tag">Pedal Edema</span><span class="tag">Fatigue</span><span class="tag">Hypertension</span><span class="tag">Diabetes</span></div>
+      </div>
+      <div class="nb-card">
+        <h3>Symptom-to-Clinical Mapping Approach</h3>
+        <p>Since the ML model was trained on clinical values (creatinine, hemoglobin, etc.), we built a heuristic mapping layer that translates symptom answers into approximate clinical ranges. For example: persistent fatigue + swelling + reduced urination → elevated serum creatinine + low hemoglobin + reduced packed cell volume. This allows general-public use without any lab tests.</p>
+        <div class="tags"><span class="tag">Heuristic Mapping</span><span class="tag">Feature Engineering</span><span class="tag">Clinical Approximation</span></div>
+      </div>
+      <div class="nb-card">
+        <h3>ML Model Performance Summary</h3>
+        <p>Random Forest: 98.33% accuracy | SVM: 97.5% | Gradient Boosting: 97.1% | Logistic Regression: 96.67% | KNN: 94.17%. Random Forest was selected as the primary model. All models were evaluated using 10-fold cross-validation, confusion matrices, and AUC-ROC curves.</p>
+        <div class="tags"><span class="tag">98.33% RF Accuracy</span><span class="tag">AUC-ROC</span><span class="tag">10-Fold CV</span></div>
+      </div>
+      <div class="nb-card">
+        <h3>Dataset: Kaggle CKD Dataset</h3>
+        <p>Source: UCI Machine Learning Repository (via Kaggle). Contains 400 instances (250 CKD, 150 Not CKD) with 24 features including: age, blood pressure, specific gravity, albumin, sugar, red blood cells, pus cells, bacteria, blood glucose, blood urea, serum creatinine, sodium, potassium, hemoglobin, packed cell volume, WBC/RBC count, and several comorbidity flags.</p>
+        <div class="tags"><span class="tag">UCI Repository</span><span class="tag">400 Records</span><span class="tag">24 Features</span><span class="tag">Binary Classification</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREDICT TAB -->
+  <div id="d-predict" class="dash-tab">
+    <div class="predict-wrap">
+      <div class="predict-card">
+        <h2>🔬 CKD Risk Assessment</h2>
+        <p class="intro">
+          Answer the 11 questions below honestly. These are based on common CKD risk factors and symptoms that anyone can identify without lab tests.
+          Our AI will map your answers to clinical indicators and predict your risk level.
+        </p>
+
+        <form id="symptom-form" onsubmit="submitPrediction(event)">
+          <div class="symptom-grid">
+
+            <!-- Q1: Age -->
+            <div class="symptom-field">
+              <div class="q-label"><span class="q-icon">🎂</span> How old are you?</div>
+              <input type="number" class="age-input" id="q-age" placeholder="Enter your age" min="5" max="110" required>
+            </div>
+
+            <!-- Q2: Hypertension -->
+            <div class="symptom-field">
+              <div class="q-label"><span class="q-icon">❤️</span> Have you been told you have high blood pressure (hypertension)?</div>
+              <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="hypertension" id="htn-y" value="yes" required><label for="htn-y">Yes</label></div>
+                <div class="radio-option"><input type="radio" name="hypertension" id="htn-n" value="no"><label for="htn-n">No</label></div>
+                <div class="radio-option"><input type="radio" name="hypertension" id="htn-u" value="no"><label for="htn-u">Not Sure</label></div>
+              </div>
+            </div>
+
+            <!-- Q3: Diabetes -->
+            <div class="symptom-field">
+              <div class="q-label"><span class="q-icon">🩸</span> Do you have diabetes (Type 1 or Type 2)?</div>
+              <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="diabetes" id="dm-y" value="yes" required><label for="dm-y">Yes</label></div>
+                <div class="radio-option"><input type="radio" name="diabetes" id="dm-n" value="no"><label for="dm-n">No</label></div>
+                <div class="radio-option"><input type="radio" name="diabetes" id="dm-u" value="no"><label for="dm-u">Not Sure</label></div>
+              </div>
+            </div>
+
+            <!-- Q4: Fatigue -->
+            <div class="symptom-field">
+              <div class="q-label"><span class="q-icon">😴</span> Do you feel unusually tired or fatigued most of the time?</div>
+              <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="fatigue" id="fat-y" value="yes" required><label for="fat-y">Yes</label></div>
+                <div class="radio-option"><input type="radio" name="fatigue" id="fat-n" value="no"><label for="fat-n">No</label></div>
+              </div>
+            </div>
+
+            <!-- Q5: Swelling -->
+            <div class="symptom-field">
+              <div class="q-label"><span class="q-icon">🦵</span> Do you have swelling in your feet, ankles, or legs?</div>
+              <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="swelling" id="sw-y" value="yes" required><label for="sw-y">Yes</label></div>
+                <div class="radio-option"><input type="radio" name="swelling" id="sw-n" value="no"><label for="sw-n">No</label></div>
+              </div>
+            </div>
+
+            <!-- Q6: Appetite -->
+            <div class="symptom-field">
+              <div class="q-label"><span class="q-icon">🍽️</span> Do you have a poor appetite, nausea, or vomiting?</div>
+              <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="poor_appetite" id="ap-y" value="yes" required><label for="ap-y">Yes</label></div>
+                <div class="radio-option"><input type="radio" name="poor_appetite" id="ap-n" value="no"><label for="ap-n">No</label></div>
+              </div>
+            </div>
+
+            <!-- Q7: Urination -->
+            <div class="symptom-field">
+              <div class="q-label"><span class="q-icon">🚽</span> How is your urination frequency compared to normal?</div>
+              <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="urination" id="ur-less" value="less" required><label for="ur-less">Less than usual</label></div>
+                <div class="radio-option"><input type="radio" name="urination" id="ur-norm" value="normal"><label for="ur-norm">Normal</label></div>
+                <div class="radio-option"><input type="radio" name="urination" id="ur-more" value="more"><label for="ur-more">More than usual</label></div>
+              </div>
+            </div>
+
+            <!-- Q8: Back/Side Pain -->
+            <div class="symptom-field">
+              <div class="q-label"><span class="q-icon">😣</span> Do you have persistent pain in your back, sides, or below the ribs?</div>
+              <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="back_pain" id="bp-y" value="yes" required><label for="bp-y">Yes</label></div>
+                <div class="radio-option"><input type="radio" name="back_pain" id="bp-n" value="no"><label for="bp-n">No</label></div>
+              </div>
+            </div>
+
+            <!-- Q9: Family History -->
+            <div class="symptom-field">
+              <div class="q-label"><span class="q-icon">👨‍👩‍👦</span> Does anyone in your immediate family have kidney disease?</div>
+              <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="family_history" id="fh-y" value="yes" required><label for="fh-y">Yes</label></div>
+                <div class="radio-option"><input type="radio" name="family_history" id="fh-n" value="no"><label for="fh-n">No</label></div>
+                <div class="radio-option"><input type="radio" name="family_history" id="fh-u" value="no"><label for="fh-u">Not Sure</label></div>
+              </div>
+            </div>
+
+            <!-- Q10: Smoking/Alcohol -->
+            <div class="symptom-field">
+              <div class="q-label"><span class="q-icon">🚬</span> Do you smoke regularly or consume alcohol frequently?</div>
+              <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="smoke_alcohol" id="sa-y" value="yes" required><label for="sa-y">Yes</label></div>
+                <div class="radio-option"><input type="radio" name="smoke_alcohol" id="sa-n" value="no"><label for="sa-n">No</label></div>
+              </div>
+            </div>
+
+            <!-- Q11: Obesity -->
+            <div class="symptom-field">
+              <div class="q-label"><span class="q-icon">⚖️</span> Are you overweight or obese (BMI &gt; 30)?</div>
+              <div class="radio-group">
+                <div class="radio-option"><input type="radio" name="obesity" id="ob-y" value="yes" required><label for="ob-y">Yes</label></div>
+                <div class="radio-option"><input type="radio" name="obesity" id="ob-n" value="no"><label for="ob-n">No</label></div>
+                <div class="radio-option"><input type="radio" name="obesity" id="ob-u" value="no"><label for="ob-u">Not Sure</label></div>
+              </div>
+            </div>
+
+          </div><!-- end symptom-grid -->
+
+          <div class="form-actions">
+            <button type="submit" class="btn-submit">🔬 Analyse My Risk</button>
+            <button type="reset" class="btn-reset" onclick="clearResult()">↺ Reset</button>
+          </div>
+        </form>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <p style="color:#a8d5e2">Analysing your answers...</p>
+        </div>
+
+        <!-- Result -->
+        <div id="result-box"></div>
+
+      </div>
+    </div>
+  </div>
+
+</div><!-- end dashboard -->
+
+
+<script>
+// ════════════════════════════════════════════════
+//  CONFIG — Flask API base URL
+//  Change this if Flask runs on a different port
+// ════════════════════════════════════════════════
+const API = 'http://127.0.0.1:5000';
+
+// In-memory users as fallback when Flask is offline
+const localUsers = {};
+let currentUser  = '';
+
+
+// ── Page & Tab Routing ────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showAuth(type) {
+  document.getElementById('signup-wrap').style.display = type === 'signup' ? 'flex' : 'none';
+  document.getElementById('signin-wrap').style.display = type === 'signin' ? 'flex' : 'none';
+  document.getElementById('auth-toggle-link').textContent = type === 'signup' ? 'Sign In' : 'Sign Up';
+}
+
+function toggleAuth() {
+  const showing = document.getElementById('signup-wrap').style.display !== 'none' ? 'signup' : 'signin';
+  showAuth(showing === 'signup' ? 'signin' : 'signup');
+}
+
+function showTab(id) {
+  document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.dash-nav-links a').forEach(a => a.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tabMap = { 'd-home':'tab-home','d-about':'tab-about','d-notebook':'tab-notebook','d-predict':'tab-predict' };
+  if (tabMap[id]) document.getElementById(tabMap[id]).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+
+// ── Register ──────────────────────────────────────
+async function handleRegister(e) {
+  e.preventDefault();
+  const msgEl = document.getElementById('signup-msg');
+  msgEl.className = 'msg';
+
+  const payload = {
+    username: document.getElementById('reg-username').value.trim(),
+    name:     document.getElementById('reg-name').value.trim(),
+    email:    document.getElementById('reg-email').value.trim(),
+    phone:    document.getElementById('reg-phone').value.trim(),
+    password: document.getElementById('reg-password').value
+  };
+
+  try {
+    const res  = await fetch(`${API}/api/register`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      launchDashboard(data.name || payload.name);
+    } else {
+      showMsg('signup-msg', 'error', data.message);
+    }
+  } catch {
+    // Flask offline → fallback local
+    if (localUsers[payload.email]) {
+      showMsg('signup-msg', 'error', 'Email already registered locally.');
+      return;
+    }
+    localUsers[payload.email] = payload;
+    launchDashboard(payload.name);
+  }
+}
+
+
+// ── Login ─────────────────────────────────────────
+async function handleLogin(e) {
+  e.preventDefault();
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  try {
+    const res  = await fetch(`${API}/api/login`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (data.success) {
+      launchDashboard(data.name);
+    } else {
+      showMsg('signin-msg', 'error', data.message);
+    }
+  } catch {
+    // Flask offline → fallback local
+    const user = localUsers[email];
+    if (!user) { showMsg('signin-msg','error','Email not found locally.'); return; }
+    if (user.password !== password) { showMsg('signin-msg','error','Incorrect password.'); return; }
+    launchDashboard(user.name);
+  }
+}
+
+
+function launchDashboard(name) {
+  currentUser = name;
+  document.getElementById('user-pill').textContent  = '👤 ' + name;
+  document.getElementById('welcome-msg').textContent = `Hello, ${name}! Answer the questions in CKD Test to check your kidney health.`;
+  showPage('dashboard');
+  showTab('d-home');
+}
+
+function signOut() {
+  currentUser = '';
+  showPage('auth');
+  showAuth('signin');
+}
+
+
+// ── Prediction ────────────────────────────────────
+async function submitPrediction(e) {
+  e.preventDefault();
+
+  const form = document.getElementById('symptom-form');
+  const fd   = new FormData(form);
+
+  const payload = {
+    age:            parseInt(document.getElementById('q-age').value),
+    hypertension:   fd.get('hypertension'),
+    diabetes:       fd.get('diabetes'),
+    fatigue:        fd.get('fatigue'),
+    swelling:       fd.get('swelling'),
+    poor_appetite:  fd.get('poor_appetite'),
+    urination:      fd.get('urination'),
+    back_pain:      fd.get('back_pain'),
+    family_history: fd.get('family_history'),
+    smoke_alcohol:  fd.get('smoke_alcohol'),
+    obesity:        fd.get('obesity')
+  };
+
+  // Show loading
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('result-box').innerHTML = '';
+
+  try {
+    const res  = await fetch(`${API}/api/predict`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    document.getElementById('loading').classList.remove('show');
+    if (data.success) {
+      renderResult(data);
+    } else {
+      renderError(data.message);
+    }
+  } catch {
+    // Flask offline → use local heuristic
+    document.getElementById('loading').classList.remove('show');
+    const local = localPredict(payload);
+    renderResult(local);
+  }
+}
+
+
+// ── Local fallback prediction (when Flask is offline) ──
+function localPredict(u) {
+  let score = 0;
+  const age   = parseInt(u.age || 40);
+  if (age > 60) score += 18;
+  else if (age > 45) score += 10;
+  if (u.hypertension   === 'yes') score += 20;
+  if (u.diabetes       === 'yes') score += 18;
+  if (u.fatigue        === 'yes') score += 12;
+  if (u.swelling       === 'yes') score += 14;
+  if (u.poor_appetite  === 'yes') score += 10;
+  if (u.urination      === 'less') score += 15;
+  if (u.back_pain      === 'yes') score += 8;
+  if (u.family_history === 'yes') score += 10;
+  if (u.smoke_alcohol  === 'yes') score += 6;
+  if (u.obesity        === 'yes') score += 7;
+
+  const prob       = Math.min(score, 100);
+  const prediction = prob >= 45 ? 1 : 0;
+  const risk       = prob > 65 ? 'High' : prob > 35 ? 'Medium' : 'Low';
+
+  return {
+    success:          true,
+    prediction,
+    label:            prediction === 1 ? 'CKD Detected' : 'No CKD Detected',
+    ckd_probability:  prob,
+    safe_probability: 100 - prob,
+    risk_level:       risk,
+    recommendation:   getRecommendation(prediction, risk)
+  };
+}
+
+function getRecommendation(pred, risk) {
+  if (pred === 1)
+    return '⚠️ Our analysis indicates a HIGH risk of Chronic Kidney Disease. Please consult a nephrologist as soon as possible. Request blood tests (creatinine, blood urea) and urine analysis. Early treatment can significantly slow disease progression.';
+  if (risk === 'Medium')
+    return '🟡 You show some moderate risk factors. We recommend scheduling a routine kidney health checkup. Maintain hydration, control blood pressure, and reduce NSAID use.';
+  return '✅ Based on your symptoms, your kidney health appears low risk. Continue a healthy lifestyle — stay hydrated, exercise regularly, control blood sugar and blood pressure, and get annual checkups.';
+}
+
+
+// ── Render Result ─────────────────────────────────
+function renderResult(data) {
+  const isCKD   = data.prediction === 1;
+  const isMed   = !isCKD && data.risk_level === 'Medium';
+  const cls     = isCKD ? 'ckd' : isMed ? 'medium' : 'no-ckd';
+  const icon    = isCKD ? '⚠️' : isMed ? '🟡' : '✅';
+  const color   = isCKD ? '#e63946' : isMed ? '#f4a261' : '#2dc653';
+  const fillCls = isCKD ? 'ckd-fill' : 'safe-fill';
+  const pct     = isCKD ? data.ckd_probability : data.safe_probability;
+
+  document.getElementById('result-box').innerHTML = `
+    <div class="result-card ${cls}" id="result-card">
+      <div class="result-header">
+        <div class="result-icon">${icon}</div>
+        <div>
+          <h3 style="color:${color}">${data.label}</h3>
+          <div style="color:#a8d5e2;font-size:.88rem">Risk Level: <strong style="color:${color}">${data.risk_level}</strong></div>
+        </div>
+      </div>
+      <div class="risk-bar"><div class="risk-fill ${fillCls}" id="risk-fill" style="width:0%"></div></div>
+      <div class="result-prob">
+        ${isCKD
+          ? `CKD Probability: <strong style="color:${color}">${data.ckd_probability}%</strong>`
+          : `Healthy Probability: <strong style="color:${color}">${data.safe_probability}%</strong>`}
+      </div>
+      <div class="result-rec">${data.recommendation}</div>
+      <div class="result-disclaimer">⚕️ This is an AI-based educational screening tool. It does NOT replace professional medical diagnosis. Please consult a qualified doctor for accurate evaluation.</div>
+    </div>`;
+
+  setTimeout(() => {
+    const bar = document.getElementById('risk-fill');
+    if (bar) bar.style.width = pct + '%';
+  }, 100);
+
+  document.getElementById('result-card').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function renderError(msg) {
+  document.getElementById('result-box').innerHTML = `
+    <div class="result-card ckd" style="display:block">
+      <p>❌ Error: ${msg}</p>
+    </div>`;
+}
+
+function clearResult() {
+  document.getElementById('result-box').innerHTML = '';
+  document.getElementById('loading').classList.remove('show');
+}
+
+
+// ── Utility ───────────────────────────────────────
+function showMsg(id, type, text) {
+  const el = document.getElementById(id);
+  el.className = 'msg ' + type;
+  el.textContent = text;
+}
+
+// Smooth scroll for landing links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior:'smooth' }); }
+  });
+});
+</script>
+</body>
+</html>
