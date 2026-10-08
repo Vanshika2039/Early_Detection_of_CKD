@@ -258,7 +258,7 @@ POST /api/predict
 
 **Saladi Vanshika**
 - Project: Special Project — CKD Early Detection
-- Institution: Academic Submission 2024
+
 
 ---
 
