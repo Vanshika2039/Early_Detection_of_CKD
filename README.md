@@ -76,9 +76,9 @@ CKD_DETECT_PROJECT/
 │   ├── .gitignore           # Files excluded from GitHub
 │   ├── .env.example         # Environment variable template
 │   │
-│   ├── ckd_model.pkl        # Trained ML model (not on GitHub)
-│   ├── ckd_scaler.pkl       # Feature scaler (not on GitHub)
-│   ├── ckd_features.pkl     # Feature list (not on GitHub)
+│   ├── ckd_model.pkl        # Trained ML model
+│   ├── ckd_scaler.pkl       # Feature scaler
+│   ├── ckd_features.pkl     # Feature list 
 │   └── ckd_users.db         # SQLite database (not on GitHub)
 │
 ├── Spl_project Notebook.ipynb   # Jupyter notebook (full ML pipeline)
